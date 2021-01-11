@@ -12,6 +12,23 @@ def terminate():
     sys.exit()
 
 
+def continue_game():
+    fon = pygame.transform.scale(load_image('mainphoto.jpeg'), (WIDTH, HEIGHT))
+    screen.blit(fon, (0, 0))
+    font1 = pygame.font.Font('start&endfont.ttf', 45)
+    end_text = font1.render("Press a key to begin", True, pygame.Color("black"))
+    screen.blit(end_text, (90, 200))
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYUP:
+                waiting = False
+
+
 def load_image(name):
     fullname = os.path.join(name)
     return pygame.image.load(fullname)
@@ -26,7 +43,7 @@ def start_screen():
 
     fon = pygame.transform.scale(load_image('mainphoto.jpeg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font("rt.ttf", 20)
+    font = pygame.font.Font("start&endfont.ttf", 20)
     text_coord = 50
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
@@ -71,9 +88,9 @@ class Board:
 
     # проверка на выход фигуры за поле или столкновение с находящейся рядом фигурой
     def check_borders(self, figure, field):
-        if figure[i].x < 0 or figure[i].x > 10 - 1:
+        if figure[i].x < 0 or figure[i].x > 9:
             return False
-        elif figure[i].y > 20 - 1 or field[figure[i].y][figure[i].x]:
+        elif figure[i].y > 19 or field[figure[i].y][figure[i].x]:  # либо уже есть цвет, либо 0
             return False
         return True
 
@@ -86,7 +103,14 @@ class Board:
                                   self.cell_size, self.cell_size), 0)
                 pygame.display.flip()
                 clock.tick(200)
-        pygame.time.wait(800)
+
+        pygame.init()
+        font1 = pygame.font.Font('start&endfont.ttf', 70)
+        end_text = font1.render("The end", True, pygame.Color("black"))
+        screen.blit(end_text, (105, 300))
+        pygame.display.flip()
+        pygame.time.wait(1000)
+
 
 
 # храним рекорд в файле, если файла нет, создаем его, если есть, открываем и считываем предыдущий рекорд
@@ -130,8 +154,8 @@ speed, maxx_speed = 0, 2000  # скорость для плавного движ
 
 bg = pygame.image.load('mainbackground.jpg').convert()
 
-main_font = pygame.font.Font('titlefont.ttf', 70)
-font = pygame.font.Font('titlefont.ttf', 60)
+main_font = pygame.font.Font('mainfont.ttf', 70)
+font = pygame.font.Font('mainfont.ttf', 60)
 title = main_font.render("Tetris", True, pygame.Color(75, 0, 130))
 score_text = font.render("score:", True, pygame.Color(255, 0, 255))
 record_text = font.render('record:', True, pygame.Color(148, 0, 211))
@@ -143,6 +167,7 @@ figure, next_figure = deepcopy(choice(figures)), deepcopy(choice(figures))   # �
 color, next_color = (randrange(0, 256), randrange(0, 256), randrange(0, 256)),\
                     (randrange(0, 256), randrange(0, 256), randrange(0, 256))
 while running:
+    pause = False
     move_gorizont = 0  # переменная, чтобы двигать по горизонтали
     rotate = False  # переменная чтобы поворачивать фигуру
     screen.blit(bg, (0, 0))
@@ -251,5 +276,6 @@ while running:
             speed, maxx_speed = 0, 2000
             score = 0
             board.end()
+            continue_game()
     pygame.display.flip()
 pygame.quit()
