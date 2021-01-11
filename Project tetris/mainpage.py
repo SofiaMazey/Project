@@ -15,9 +15,9 @@ def terminate():
 def continue_game():
     fon = pygame.transform.scale(load_image('mainphoto.jpeg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
-    font1 = pygame.font.Font('start&endfont.ttf', 45)
-    end_text = font1.render("Press a key to begin", True, pygame.Color("black"))
-    screen.blit(end_text, (90, 200))
+    font1 = pygame.font.Font('start&endscreen.ttf', 40)
+    end_text = font1.render("Нажмите пробел для следующей попытки", True, pygame.Color("black"))
+    screen.blit(end_text, (5, 200))
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -25,8 +25,9 @@ def continue_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-            if event.type == pygame.KEYUP:
-                waiting = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting = False
 
 
 def load_image(name):
@@ -37,14 +38,17 @@ def load_image(name):
 def start_screen():
     intro_text = ["Тетрис", "",
                   "Правила игры:",
-                  "Переворачивайте фигурки клавишами управления курсором;",
+                  "Переворачивайте фигурки клавишей 'вверх';",
+                  "Ускоряйте фигурки клавишей 'вниз';",
+                  "Двигайте фигурки вправо/влево соответствующими клавишами;",
                   "Собирайте целую строчку, тогда она исчезнет;",
+                  "Ловите звезды, чтобы заработать доп. очки;",
                   "Игра закончится, когда не останется места на поле."]
 
     fon = pygame.transform.scale(load_image('mainphoto.jpeg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
-    font = pygame.font.Font("start&endfont.ttf", 20)
-    text_coord = 50
+    font = pygame.font.Font("start&endscreen.ttf", 27)
+    text_coord = 30
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
@@ -105,12 +109,42 @@ class Board:
                 clock.tick(200)
 
         pygame.init()
-        font1 = pygame.font.Font('start&endfont.ttf', 70)
+        font1 = pygame.font.Font('end_txt.ttf', 70)
         end_text = font1.render("The end", True, pygame.Color("black"))
-        screen.blit(end_text, (105, 300))
+        screen.blit(end_text, (100, 300))
         pygame.display.flip()
         pygame.time.wait(1000)
 
+
+# список для координат х клетчатого поля
+stars_x = []
+for i in range(10):
+    stars_x.append(5 + 40 * i)
+
+
+class Star(pygame.sprite.Sprite):
+    star_image = load_image("star.jpg")
+    star_image.set_colorkey((255, 255, 255))
+    star_image = pygame.transform.scale(star_image, (40, 40))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Star.star_image
+        self.rect = self.image.get_rect()
+        self.rect.x = choice(stars_x)
+        self.rect.y = 0
+
+    def update(self, *args):
+        if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
+                self.rect.collidepoint(args[0].pos):
+            self.kill()
+            global score
+            global starsnumber
+            score += 20
+            starsnumber += 1
+        else:
+            self.rect.y += 6
+            clock.tick(100)
 
 
 # храним рекорд в файле, если файла нет, создаем его, если есть, открываем и считываем предыдущий рекорд
@@ -135,6 +169,7 @@ size = WIDTH, HEIGHT
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Tetris")
 board = Board(10, 20)
+all_sprites = pygame.sprite.Group()
 running = True
 clock = pygame.time.Clock()
 start_screen()
@@ -160,14 +195,20 @@ title = main_font.render("Tetris", True, pygame.Color(75, 0, 130))
 score_text = font.render("score:", True, pygame.Color(255, 0, 255))
 record_text = font.render('record:', True, pygame.Color(148, 0, 211))
 
+mainsound = pygame.mixer.Sound('mainsound.wav')
+
 score, lines = 0, 0
+linesnumber = 0
+starsnumber = 0
 scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}  # зависит от кол-ва линий, убранных одновременно
 
 figure, next_figure = deepcopy(choice(figures)), deepcopy(choice(figures))   # рандомно выбираем фигуру
 color, next_color = (randrange(0, 256), randrange(0, 256), randrange(0, 256)),\
                     (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+FIRE_EVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(FIRE_EVENT, 10000)
 while running:
-    pause = False
+    mainsound.play()
     move_gorizont = 0  # переменная, чтобы двигать по горизонтали
     rotate = False  # переменная чтобы поворачивать фигуру
     screen.blit(bg, (0, 0))
@@ -188,6 +229,10 @@ while running:
                 maxx_speed = 150
             elif event.key == pygame.K_UP:  # поворачиваем
                 rotate = True
+        if event.type == FIRE_EVENT:
+            Star(all_sprites)
+        all_sprites.update(event)
+
     figure_old = deepcopy(figure)  # копия чтобы вернуть предыдущее положение, если будет выход за границу
     for i in range(4):  # меняем координаты, чтобы сдвинуть по горизонтали
         figure[i].x += move_gorizont
@@ -223,7 +268,7 @@ while running:
             if not board.check_borders(figure, field):
                 figure = deepcopy(figure_old)
                 break
-
+    all_sprites.update()
     line, lines = 19, 0  # первая для кол-ва линий на поле, вторая считает сколько линий ушло(те которые полностью собраны)
     for row in range(19, -1, -1):  # идем по списку линий от последней до начальной
         k = 0
@@ -238,10 +283,12 @@ while running:
         if k < 10:
             line -= 1
         else:
-            speed += 5  # увеличиваем скорость каждой линией
             lines += 1
+
+    linesnumber += lines
     score += scores[lines]  # очки в зависимости с правилами
     board.render()  # отрисовываем доску
+    all_sprites.draw(screen)
     for i in range(4):  # отрисовываем фигуры (т.к. они из 4 клеток каждая)
         figure_rect.x = 5 + figure[i].x * 40
         figure_rect.y = 5 + figure[i].y * 40
@@ -260,15 +307,33 @@ while running:
         pygame.draw.rect(screen, next_color, figure_rect)
     # рисуем текст
     screen.blit(title, (460, 10))
-    screen.blit(score_text, (470, 500))
+
+    screen.blit(score_text, (470, 350))
     txt = font.render(str(score), True, pygame.Color(255, 0, 255))
-    txt_rect = txt.get_rect(center=(520, 590))
+    txt_rect = txt.get_rect(center=(520, 440))
     screen.blit(txt, txt_rect)
-    screen.blit(record_text, (460, 650))
+
+    star_im = load_image("star.jpg")
+    star_im.set_colorkey((255, 255, 255))
+    star_im = pygame.transform.scale(star_im, (40, 40))
+    star_rect = (480, 490)
+    screen.blit(star_im, star_rect)
+    st_num = font.render(str(starsnumber), True, pygame.Color(25, 25, 112))
+    st_rect = txt.get_rect(center=(560, 505))
+    screen.blit(st_num, st_rect)
+
+    screen.blit(record_text, (460, 530))
     txt2 = font.render(str(record), True, pygame.Color(148, 0, 211))
-    txt_rect2 = txt.get_rect(center=(500, 740))
+    txt_rect2 = txt.get_rect(center=(500, 630))
     screen.blit(txt2, txt_rect2)
 
+    txt3 = font.render("lines:", True, pygame.Color(199, 21, 133))
+    screen.blit(txt3, (470, 660))
+    time_txt = font.render(str(linesnumber), True, pygame.Color(199, 21, 133))
+    time_rect = txt.get_rect(center=(520, 760))
+    screen.blit(time_txt, time_rect)
+
+    # окончание игры
     for i in range(10):
         if field[0][i]:
             set_record(record, score)
@@ -276,6 +341,8 @@ while running:
             speed, maxx_speed = 0, 2000
             score = 0
             board.end()
+            mainsound.stop()
             continue_game()
+            linesnumber = 0
     pygame.display.flip()
 pygame.quit()
