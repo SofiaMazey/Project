@@ -42,7 +42,7 @@ def start_screen():
                   "Ускоряйте фигурки клавишей 'вниз';",
                   "Двигайте фигурки вправо/влево соответствующими клавишами;",
                   "Собирайте целую строчку, тогда она исчезнет;",
-                  "Ловите звезды, чтобы заработать доп. очки;",
+                  "Ловите звезды, чтобы заработать +20 очков;",
                   "Игра закончится, когда не останется места на поле."]
 
     fon = pygame.transform.scale(load_image('mainphoto.jpeg'), (WIDTH, HEIGHT))
@@ -138,6 +138,8 @@ class Star(pygame.sprite.Sprite):
         if args and args[0].type == pygame.MOUSEBUTTONDOWN and \
                 self.rect.collidepoint(args[0].pos):
             self.kill()
+            mainsound.stop()
+            shotsound.play()
             global score
             global starsnumber
             score += 20
@@ -186,6 +188,7 @@ figure_rect = pygame.Rect(0, 0, 38, 38)  # рисование фигуры
 
 field = [[0] * 10 for _ in range(20)]  # поле, чтобы отмечать на нем уже упаввшие фигуры
 speed, maxx_speed = 0, 2000  # скорость для плавного движения вниз
+speed_up = 50
 
 bg = pygame.image.load('mainbackground.jpg').convert()
 
@@ -196,6 +199,7 @@ score_text = font.render("score:", True, pygame.Color(255, 0, 255))
 record_text = font.render('record:', True, pygame.Color(148, 0, 211))
 
 mainsound = pygame.mixer.Sound('mainsound.wav')
+shotsound = pygame.mixer.Sound('shot_sound.wav')
 
 score, lines = 0, 0
 linesnumber = 0
@@ -232,6 +236,7 @@ while running:
         if event.type == FIRE_EVENT:
             Star(all_sprites)
         all_sprites.update(event)
+        mainsound.play()
 
     figure_old = deepcopy(figure)  # копия чтобы вернуть предыдущее положение, если будет выход за границу
     for i in range(4):  # меняем координаты, чтобы сдвинуть по горизонтали
@@ -240,7 +245,7 @@ while running:
             figure = deepcopy(figure_old)
             break
     # движение фигурки вниз
-    speed += 50
+    speed += speed_up
     if speed > maxx_speed:
         speed = 0
         figure_old = deepcopy(figure)
@@ -269,7 +274,7 @@ while running:
                 figure = deepcopy(figure_old)
                 break
     all_sprites.update()
-    line, lines = 19, 0  # первая для кол-ва линий на поле, вторая считает сколько линий ушло(те которые полностью собраны)
+    line, lines = 19, 0  # первая для кол-ва линий на поле,вторая считает сколько линий ушло(полностью собранные)
     for row in range(19, -1, -1):  # идем по списку линий от последней до начальной
         k = 0
         # считаем сколько заполненных клеточек в горизонтальной линии
@@ -283,6 +288,7 @@ while running:
         if k < 10:
             line -= 1
         else:
+            speed_up += 1
             lines += 1
 
     linesnumber += lines
@@ -339,6 +345,7 @@ while running:
             set_record(record, score)
             field = [[0] * 10 for _ in range(20)]
             speed, maxx_speed = 0, 2000
+            speed_up = 50
             score = 0
             board.end()
             mainsound.stop()
