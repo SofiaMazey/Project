@@ -300,7 +300,7 @@ while running:
         figure_rect.y = 5 + figure[i].y * 40
         pygame.draw.rect(screen, color, figure_rect)
     # рисуем поле с фигурами, которые уже на нем
-    # смотрим по цвету, если в ячейке не ноль, а цвет, то рисуем этот квадрат(закрашиваем)
+    # смотрим по цвету, если в ячейке не ноль, а цвет, то рисуем этот квадрат
     for y, raw in enumerate(field):
         for x, col in enumerate(raw):
             if col:
