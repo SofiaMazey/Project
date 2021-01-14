@@ -388,4 +388,4 @@ while running:
     figure.draw_information()
     figure.ending()
     pygame.display.flip()
-pygame.quit(
+pygame.quit()
