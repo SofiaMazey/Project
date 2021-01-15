@@ -120,10 +120,10 @@ def check_borders(figure, field):
         if figure[i].x < 0 or figure[i].x > 9:
             return False
         elif figure[i].y > 19 or field[figure[i].y][figure[i].x]:
-            print(field)
             # либо уже есть цвет, либо 0
             return False
-        return True
+        else:
+            return True
 
 
 class Figure:
@@ -137,17 +137,17 @@ class Figure:
         self.score_text = self.font.render("score:", True, pygame.Color(255, 0, 255))
         self.record_text = self.font.render('record:', True, pygame.Color(148, 0, 211))
         #  позиции каждой фигуры, если распологать их о  начала координат (первая координата - центр вращения фигуры)
-        self.figures_pos = [[(-1, 0), (-2, 0), (0, 0), (1, 0)],
-                       [(0, -1), (-1, -1), (-1, 0), (0, 0)],
-                       [(-1, 0), (-1, 1), (0, 0), (0, -1)],
-                       [(0, 0), (-1, 0), (0, 1), (-1, -1)],
-                       [(0, 0), (0, -1), (0, 1), (-1, -1)],
-                       [(0, 0), (0, -1), (0, 1), (1, -1)],
-                       [(0, 0), (0, -1), (0, 1), (-1, 0)]]
+        self.figures_pos = ([(-1, 0), (-2, 0), (0, 0), (1, 0)],
+                            [(0, -1), (-1, -1), (-1, 0), (0, 0)],
+                            [(-1, 0), (-1, 1), (0, 0), (0, -1)],
+                            [(0, 0), (-1, 0), (0, 1), (-1, -1)],
+                            [(0, 0), (0, -1), (0, 1), (-1, -1)],
+                            [(0, 0), (0, -1), (0, 1), (1, -1)],
+                            [(0, 0), (0, -1), (0, 1), (-1, 0)])
         self.figures = [[pygame.Rect(x + 5, y + 1, 1, 1) for x, y in fig_pos] for fig_pos in self.figures_pos]
         self.figure_rect = pygame.Rect(0, 0, 38, 38)  # рисование фигуры
 
-        self.field = [[0 for _ in range(10)] for _ in range(20)]  # поле, чтобы отмечать на нем уже упаввшие фигуры
+        self.field = [[0] * 10 for _ in range(20)]  # поле, чтобы отмечать на нем уже упаввшие фигуры
         self.speed, self.maxx_speed = 0, 2000  # скорость для плавного движения вниз
         self.speed_up = 50
         self.score, self.lines = 0, 0
@@ -161,13 +161,12 @@ class Figure:
         self.figure_old = deepcopy(self.figure)
 
     def gorizont_move(self, move_gor):
-        if move_gor != 0:
-            self.move_gorizont = move_gor
+        self.move_gorizont = move_gor
         self.figure_old = deepcopy(self.figure)  # копия чтобы вернуть предыдущее положение, если будет выход за границу
+        print(self.move_gorizont)
         for i in range(4):  # меняем координаты, чтобы сдвинуть по горизонтали
             self.figure[i].x += self.move_gorizont
             if not check_borders(self.figure, self.field):
-                print(1)
                 self.figure = deepcopy(self.figure_old)
                 break
 
@@ -183,8 +182,10 @@ class Figure:
             for i in range(4):
                 self.figure[i].y += 1
                 if not check_borders(self.figure, self.field):
-                    for i in range(4):
-                        self.field[self.figure_old[i].y][self.figure_old[i].x] = self.color
+                    for j in range(4):
+                        a = int(self.figure_old[j].y)
+                        b = int(self.figure_old[j].x)
+                        self.field[a][b] = self.color
                     self.figure, self.color = self.next_figure, self.next_color
                     self.next_figure, self.next_color = deepcopy(choice(self.figures)), \
                                               (randrange(0, 256), randrange(0, 256), randrange(0, 256))
@@ -360,6 +361,7 @@ while running:
     mainsound.play()
     screen.blit(bg, (0, 0))
     clock.tick(FPS)
+    figure.down_move()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -377,7 +379,6 @@ while running:
             Star(all_sprites, figure.score, figure.starsnumber)
         all_sprites.update(event)
         mainsound.play()
-    figure.down_move()
     all_sprites.update()
     #figure.scores()
     board.render()  # отрисовываем доску
