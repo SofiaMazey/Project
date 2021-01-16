@@ -185,6 +185,10 @@ class Figure:
                     for j in range(4):
                         a = int(self.figure_old[j].y)
                         b = int(self.figure_old[j].x)
+                        if a >= len(self.field):
+                            break
+                        if b >= len(self.field[a]):
+                            break
                         self.field[a][b] = self.color
                     self.figure, self.color = self.next_figure, self.next_color
                     self.next_figure, self.next_color = deepcopy(choice(self.figures)), \
