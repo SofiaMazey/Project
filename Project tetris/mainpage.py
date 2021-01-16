@@ -50,7 +50,7 @@ def start_screen():
     font = pygame.font.Font("start&endscreen.ttf", 27)
     text_coord = 30
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
+        string_rendered = font.render(line, True, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
@@ -154,9 +154,9 @@ class Figure:
         self.starsnumber = 0
         self.scores = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}  # зависит от кол-ва линий, убранных одновременно
 
-        self.figure, self.next_figure = deepcopy(choice(self.figures)), deepcopy(choice(self.figures))  # рандомно выбираем фигуру
+        self.figure, self.next_figure = deepcopy(choice(self.figures)), deepcopy(choice(self.figures))
         self.color, self.next_color = (randrange(0, 256), randrange(0, 256), randrange(0, 256)), \
-                            (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                                      (randrange(0, 256), randrange(0, 256), randrange(0, 256))
         self.figure_old = deepcopy(self.figure)
 
     def gorizont_move(self, move_gor):
@@ -190,8 +190,8 @@ class Figure:
                             break
                         self.field[a][b] = self.color
                     self.figure, self.color = self.next_figure, self.next_color
-                    self.next_figure, self.next_color = deepcopy(choice(self.figures)), \
-                                              (randrange(0, 256), randrange(0, 256), randrange(0, 256))
+                    self.next_figure, self.next_color = deepcopy(choice(self.figures)),\
+                                                        (randrange(0, 256), randrange(0, 256), randrange(0, 256))
                     self.maxx_speed = 2000
                     break
 
@@ -211,7 +211,8 @@ class Figure:
                 break
 
     def counting(self, score, starsnumber):
-        self.line, self.lines = 19, 0  # первая для кол-ва линий на поле,вторая считает сколько линий ушло(полностью собранные)
+        self.line, self.lines = 19, 0
+        # первая для кол-ва линий на поле, вторая считает сколько линий ушло(полностью собранные)
         for row in range(19, -1, -1):  # идем по списку линий от последней до начальной
             k = 0
             # считаем сколько заполненных клеточек в горизонтальной линии
@@ -393,4 +394,4 @@ while running:
     figure.draw_information()
     figure.ending()
     pygame.display.flip()
-pygame.quit(0)
+pygame.quit()
