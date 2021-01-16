@@ -122,8 +122,7 @@ def check_borders(figure, field):
         elif figure[i].y > 19 or field[figure[i].y][figure[i].x]:
             # либо уже есть цвет, либо 0
             return False
-        else:
-            return True
+    return True
 
 
 class Figure:
@@ -211,7 +210,7 @@ class Figure:
                 self.figure = deepcopy(self.figure_old)
                 break
 
-    def scores(self):
+    def counting(self):
         self.line, self.lines = 19, 0  # первая для кол-ва линий на поле,вторая считает сколько линий ушло(полностью собранные)
         for row in range(19, -1, -1):  # идем по списку линий от последней до начальной
             k = 0
@@ -282,6 +281,11 @@ class Figure:
         time_rect = txt.get_rect(center=(520, 760))
         screen.blit(time_txt, time_rect)
 
+    def bonus(self):
+        self.score += 20
+        self.starsnumber += 1
+        print(89)
+
     def ending(self):
         # окончание игры
         for i in range(10):
@@ -305,10 +309,10 @@ class Star(pygame.sprite.Sprite):
     star_image.set_colorkey((255, 255, 255))
     star_image = pygame.transform.scale(star_image, (40, 40))
 
-    def __init__(self, group, score, starsnumber):
+    def __init__(self, group):
         super().__init__(group)
-        self.score = score
-        self.starsnumber = starsnumber
+        #self.score = score
+        #self.starsnumber = starsnumber
         self.image = Star.star_image
         self.rect = self.image.get_rect()
         self.rect.x = choice(stars_x)
@@ -320,11 +324,11 @@ class Star(pygame.sprite.Sprite):
             self.kill()
             mainsound.stop()
             shotsound.play()
-            self.score += 20
-            self.starsnumber += 1
+            return True
         else:
             self.rect.y += 6
             clock.tick(100)
+            return False
 
 
 # храним рекорд в файле, если файла нет, создаем его, если есть, открываем и считываем предыдущий рекорд
@@ -365,7 +369,6 @@ while running:
     mainsound.play()
     screen.blit(bg, (0, 0))
     clock.tick(FPS)
-    figure.down_move()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -380,11 +383,13 @@ while running:
             elif event.key == pygame.K_UP:  # поворачиваем
                 figure.rotation()
         if event.type == FIRE_EVENT:
-            Star(all_sprites, figure.score, figure.starsnumber)
-        all_sprites.update(event)
+            Star(all_sprites)
+        if all_sprites.update(event):
+            figure.bonus()
         mainsound.play()
+    figure.down_move()
     all_sprites.update()
-    #figure.scores()
+    figure.counting()
     board.render()  # отрисовываем доску
     all_sprites.draw(screen)
     figure.draw_oldfigures()
@@ -393,4 +398,4 @@ while running:
     figure.draw_information()
     figure.ending()
     pygame.display.flip()
-pygame.quit()
+pygame.quit(0)
