@@ -210,7 +210,7 @@ class Figure:
                 self.figure = deepcopy(self.figure_old)
                 break
 
-    def counting(self):
+    def counting(self, score, starsnumber):
         self.line, self.lines = 19, 0  # первая для кол-ва линий на поле,вторая считает сколько линий ушло(полностью собранные)
         for row in range(19, -1, -1):  # идем по списку линий от последней до начальной
             k = 0
@@ -227,8 +227,9 @@ class Figure:
             else:
                 self.speed_up += 1
                 self.lines += 1
-
         self.linesnumber += self.lines
+        self.starsnumber += starsnumber
+        self.score += score
         self.score += self.scores[self.lines]  # очки в зависимости с правилами
 
     def draw_newfigure(self):
@@ -281,11 +282,6 @@ class Figure:
         time_rect = txt.get_rect(center=(520, 760))
         screen.blit(time_txt, time_rect)
 
-    def bonus(self):
-        self.score += 20
-        self.starsnumber += 1
-        print(89)
-
     def ending(self):
         # окончание игры
         for i in range(10):
@@ -302,6 +298,7 @@ class Figure:
                 mainsound.stop()
                 continue_game()
                 self.linesnumber = 0
+                self.starsnumber = 0
 
 
 class Star(pygame.sprite.Sprite):
@@ -311,8 +308,8 @@ class Star(pygame.sprite.Sprite):
 
     def __init__(self, group):
         super().__init__(group)
-        #self.score = score
-        #self.starsnumber = starsnumber
+        self.score = 20
+        self.starsnumber = 1
         self.image = Star.star_image
         self.rect = self.image.get_rect()
         self.rect.x = choice(stars_x)
@@ -324,11 +321,10 @@ class Star(pygame.sprite.Sprite):
             self.kill()
             mainsound.stop()
             shotsound.play()
-            return True
+            figure.counting(self.score, self.starsnumber)
         else:
             self.rect.y += 6
             clock.tick(100)
-            return False
 
 
 # храним рекорд в файле, если файла нет, создаем его, если есть, открываем и считываем предыдущий рекорд
@@ -384,12 +380,11 @@ while running:
                 figure.rotation()
         if event.type == FIRE_EVENT:
             Star(all_sprites)
-        if all_sprites.update(event):
-            figure.bonus()
+        all_sprites.update(event)
         mainsound.play()
     figure.down_move()
     all_sprites.update()
-    figure.counting()
+    figure.counting(0, 0)
     board.render()  # отрисовываем доску
     all_sprites.draw(screen)
     figure.draw_oldfigures()
