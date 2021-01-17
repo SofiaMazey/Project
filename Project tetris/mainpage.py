@@ -162,7 +162,6 @@ class Figure:
     def gorizont_move(self, move_gor):
         self.move_gorizont = move_gor
         self.figure_old = deepcopy(self.figure)  # копия чтобы вернуть предыдущее положение, если будет выход за границу
-        print(self.move_gorizont)
         for i in range(4):  # меняем координаты, чтобы сдвинуть по горизонтали
             self.figure[i].x += self.move_gorizont
             if not check_borders(self.figure, self.field):
